@@ -1,0 +1,38 @@
+{
+    "package": null,
+    "messages": [
+        {
+            "name": "Person",
+            "fields": [
+                {
+                    "rule": "required",
+                    "options": {},
+                    "type": "int32",
+                    "name": "id",
+                    "id": 1
+                },
+                {
+                    "rule": "required",
+                    "options": {},
+                    "type": "string",
+                    "name": "name",
+                    "id": 2
+                },
+                {
+                    "rule": "optional",
+                    "options": {},
+                    "type": "string",
+                    "name": "email",
+                    "id": 3
+                }
+            ],
+            "enums": [],
+            "messages": [],
+            "options": {}
+        }
+    ],
+    "enums": [],
+    "imports": [],
+    "options": {},
+    "services": []
+}
