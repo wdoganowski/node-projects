@@ -1,0 +1,9 @@
+{
+  "nexo": {
+    "host_":       "46.77.64.81",
+    "host":       "localhost",
+    "port":	      1024,
+    "password":	  "1234",
+    "card_addr":  "00000000"
+  }
+}
