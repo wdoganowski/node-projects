@@ -64,7 +64,7 @@ write_buffer();
 /*
  * Fake test client
  */
-var fake_debug = require('debug')('fake'),
+/*var fake_debug = require('debug')('fake'),
     counter1 = 0,
     fake1 = require('net').createConnection(8080, 'localhost', function fake_client1() {
       // on connected
@@ -84,7 +84,7 @@ var fake_debug = require('debug')('fake'),
       }, 500+Math.random()*1000);
     });
 
-
+*/
 /*
  * Test Client
  */
@@ -98,42 +98,104 @@ nexo_client.setConfig(settings_file);
 
 nexo_client.connectTo(function connected() {
   client_debug('CONNECTED TO: ' + nexo_client.host + ':' + nexo_client.port);
-  nexo_client.poolFrom(readData);
+  nexo_client.on('close', reconnect);
+  poolingLoop();
 })
 
-function readData() {
-  if (nexo_client.buffer && nexo_client.buffer.length) 
-    client_debug('RECEIVED DATA: ' + nexo_client.buffer);
-  else
-    client_debug('NO DATA');
-
-  nexo_client.poolFrom(readData);
-
+function poolingLoop() {
+  nexo_client.poolFrom(function() {
+    if (nexo_client.bufferLength()) 
+      client_debug('DATA: ' + nexo_client.readBuffer());
+    setTimeout(poolingLoop, 10);
+  });
 }
 
-function disconnect() {
+function reconnect() {
   client_debug('END');
-
-  nexo_client.end();
+  nexo_client.connectTo(function connected() {
+    client_debug('RENNECTED TO: ' + nexo_client.host + ':' + nexo_client.port);
+  });
 }
 
 /*
  * Proxy server
  */
 
-var proxy_debug = require('debug')('proxy');
+var proxy_debug = require('debug')('proxy'),
+    router = new(require('journey').Router),
+    util = require('util');
 
-require('net').createServer(function (socket) {
-    proxy_debug('New connection to the PROXY from ' + 
-        socket.remoteAddress + ':' + socket.remotePort + ' to ' + 
-        socket.localAddress + ':' + socket.localPort);
+router.get('/version').bind(function (req, res) { 
+  res.send({version: '1.0'}); 
+});
 
-    socket.on('data', function (data) {
-        proxy_debug('Proxy ' + socket.remotePort + ' Sending <' + data.toString() + '>');
-        nexo_client.writeTo(false, data.toString().replace('\r\n',''), function(){
-          proxy_debug('Proxy ' + socket.remotePort + ' Received ' + nexo_client.buffer);
-        });
+router.get('/on').bind(function (req, res, params) { 
+  if (params.relay) {
+    nexo_client.switchOn(params.relay, function() {
+      nexo_client.checkState(params.relay, function() {
+        res.send({response: nexo_client.readBuffer()}); 
+      }); 
     });
+  } else {
+    res.send({error: 'relay required'}); 
+  }
+});
+
+router.get('/off').bind(function (req, res, params) { 
+  if (params.relay) {
+    nexo_client.switchOff(params.relay, function() {
+     nexo_client.checkState(params.relay, function() {
+        res.send({response: nexo_client.readBuffer()}); 
+      }); 
+    });
+  } else {
+    res.send({error: 'relay required'}); 
+  }
+});
+
+router.get('/check').bind(function (req, res, params) { 
+  if (params.relay) {
+    nexo_client.checkState(params.relay, function() {
+      res.send({response: nexo_client.readBuffer()}); 
+    });
+  } else {
+    res.send({error: 'relay required'}); 
+  }
+});
+
+router.get('/logic').bind(function (req, res, params) { 
+  if (params.payload) {
+    nexo_client.writeTo(false, 'system logic ' + params.payload, function() {
+     nexo_client.poolFrom(function() {
+        res.send({response: nexo_client.readBuffer()}); 
+      }); 
+    });
+  } else {
+    res.send({error: 'payload required'}); 
+  }
+});
+
+router.get('/read').bind(function (req, res, params) { 
+  nexo_client.poolFrom(function() {
+    res.send({response: nexo_client.readBuffer()}); 
+  });
+});
+
+require('http').createServer(function (request, response) {
+  proxy_debug('Request ' + request.url);
+      
+  var body = "";
+
+  request.addListener('data', function (chunk) { body += chunk });
+  request.addListener('end', function () {
+      //
+      // Dispatch the request to the router
+      //
+      router.handle(request, body, function (result) {
+          response.writeHead(result.status, result.headers);
+          response.end(result.body);
+      });
+  });
 })
 
 .listen(8080);
