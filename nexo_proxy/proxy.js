@@ -1,101 +1,39 @@
 "use strict";
 
 /*
- * Mosca MQTT broker
- */
-
-var settings_file = require('./nexo_cred.json'),
-    mqtt = require('mqtt'),
-    mqtt_debug = require('debug')('mqtt'),
-    util = require('util');
-
-if ((settings_file.mqtt.host == '127.0.0.1') || (settings_file.mqtt.host == '::1') || (settings_file.mqtt.host == 'localhost')) {
-  mqtt_debug('starting');
-
-  mqtt.createServer(function(client) {
-    mqtt_debug('started');
-
-    var self = this;
-
-    if (!self.clients) self.clients = {};
-
-    client.on('connect', function(packet) {
-      client.connack({returnCode: 0});
-      client.id = packet.clientId;
-      mqtt_debug("CONNECT(%s): %j", client.id, packet);
-      self.clients[client.id] = client;
-    });
-
-    client.on('publish', function(packet) {
-      mqtt_debug("PUBLISH(%s): %j", client.id, packet);
-      for (var k in self.clients) {
-        self.clients[k].publish({topic: packet.topic, payload: packet.payload});
-      }
-    });
-
-    client.on('subscribe', function(packet) {
-      mqtt_debug("SUBSCRIBE(%s): %j", client.id, packet);
-      var granted = [];
-      for (var i = 0; i < packet.subscriptions.length; i++) {
-        granted.push(packet.subscriptions[i].qos);
-      }
-
-      client.suback({granted: granted, messageId: packet.messageId});
-    });
-
-    client.on('pingreq', function(packet) {
-      mqtt_debug('PINGREQ(%s)', client.id);
-      client.pingresp();
-    });
-
-    client.on('disconnect', function(packet) {
-      client.stream.end();
-    });
-
-    client.on('close', function(err) {
-      delete self.clients[client.id];
-    });
-
-    client.on('error', function(err) {
-      mqtt_debug('error!', err);
-
-      if (!self.clients[client.id]) return;
-
-      client.stream.end();
-      mqtt_debug(err);
-    });
-  })
-
-  .listen(settings_file.mqtt.port);
-}
-
-/*
  * Nexo Client
  */
 
-var client_debug = require('debug')('client'),
+var settings_file = './nexo_cred.json',
+    settings = require(settings_file),
+    fs = require('fs'),
+    client_debug = require('debug')('client'),
     Nexo = require('nexo'),
-    nexo_client = new Nexo(), //to be replaced by new nexo.Socket above thsis module 
-    mqtt_client = mqtt.createClient(settings_file.mqtt.port, settings_file.mqtt.host);
-  
-nexo_client.setConfig(settings_file.nexo);
+    nexo = new Nexo(), 
+    Fibaro = require('node-fibaro-api'),
+    fibaro = new Fibaro(settings.fibaro.host, settings.fibaro.user, settings.fibaro.password),
+    fibaro_debug = require('debug')('fibaro'),
+    local_proxy = false,
+    local_host = '';
 
-nexo_client.connectTo(function connected() {
-  client_debug('CONNECTED TO: ' + nexo_client.host + ':' + nexo_client.port);
-  mqtt_client.publish(settings_file.mqtt.root + '/debug', 'nexo proxy connected to ' + nexo_client.host + ':' + nexo_client.port);
+nexo.setConfig(settings.nexo);
 
-  mqtt_client.on('message', function (topic, message) {
-    client_debug(message);
-  });
+nexo.connectTo(function connected() {
+  client_debug('CONNECTED TO: ' + nexo.host + ':' + nexo.port);
 
-  nexo_client.on('close', reconnect);
+  nexo.on('close', reconnect);
   poolingLoop();
 })
 
 function poolingLoop() {
-  nexo_client.poolFrom(function() {
-    if (nexo_client.bufferLength()) {
-      mqtt_client.publish(settings_file.mqtt.root + '/logic', nexo_client.readBuffer());
+  nexo.poolFrom(function() {
+    if (nexo.bufferLength()) {
+      var buff = nexo.readBuffer(),
+          id = settings.ids[buff];
+      fibaro_debug(buff + ' Id ' + id);
+      if (id) fibaro.call('callAction', {'deviceID': id, 'name': 'pressButton', 'arg1': 1}, function(err, data) {
+        fibaro_debug('Call result ' + err + ' ' + data);
+      });
     }
     setTimeout(poolingLoop, 10);
   });
@@ -103,9 +41,8 @@ function poolingLoop() {
 
 function reconnect() {
   client_debug('END');
-  nexo_client.connectTo(function connected() {
-    client_debug('RENNECTED TO: ' + nexo_client.host + ':' + nexo_client.port);
-    mqtt_client.publish(settings_file.mqtt.root + '/debug', 'nexo proxy re-connected to ' + nexo_client.host + ':' + nexo_client.port);
+  nexo.connectTo(function connected() {
+    client_debug('RENNECTED TO: ' + nexo.host + ':' + nexo.port);
     poolingLoop();
   });
 }
@@ -119,29 +56,29 @@ var proxy_debug = require('debug')('proxy'),
     util = require('util');
 
 router.get('/version').bind(function (req, res) { 
-  res.send({version: '1.0'}); 
+  res.send({version: settings.version}); 
 });
 
 function checkState(relay, res) {
-  nexo_client.checkState(relay, function() {
-    var temp = nexo_client.readBuffer().replace(relay + ' jest ', '');
+  nexo.checkState(relay, function() {
+    var temp = nexo.readBuffer().replace(relay + ' jest ', '');
     switch (temp) {
       case 'wlaczone': 
-        temp = 'on';
+        res.send({result: 'on'});
         break;
       case 'wylaczone':
-        temp = 'off';
+        res.send({result: 'off'});
         break;
+      default:
+        res.send({error: 'unknown result'});
     }
-    mqtt_client.publish(settings_file.mqtt.root + '/switch/' + relay, temp);
-    res.send({response: temp});
   });  
 }
 
 router.get('/on').bind(function (req, res, params) { 
   if (params.relay) {
-    nexo_client.switchOn(params.relay, function() {
-      checkState(params.relay, res);
+    nexo.switchOn(params.relay, function() {
+      res.send({response:'OK'});//checkState(params.relay, res);
     });
   } else {
     res.send({error: 'relay required'}); 
@@ -150,8 +87,8 @@ router.get('/on').bind(function (req, res, params) {
 
 router.get('/off').bind(function (req, res, params) { 
   if (params.relay) {
-    nexo_client.switchOff(params.relay, function() {
-      checkState(params.relay, res);
+    nexo.switchOff(params.relay, function() {
+      res.send({response:'OK'});//checkState(params.relay, res);
     });
   } else {
     res.send({error: 'relay required'}); 
@@ -168,12 +105,12 @@ router.get('/check').bind(function (req, res, params) {
 
 router.get('/logic').bind(function (req, res, params) { 
   if (params.payload) {
-    nexo_client.writeTo(false, 'system logic ' + params.payload, function() {
-      nexo_client.poolFrom(function() {
-        var temp = nexo_client.readBuffer();
-        mqtt_client.publish(settings_file.mqtt.root + '/logic', temp);
+    nexo.sendLogic(params.payload, function() {
+      res.send({response:'OK'});/*nexo.poolFrom(function() {
+        var temp = nexo.readBuffer();
+        mqtt_client.publish(settings.mqtt.root + '/logic', temp);
         res.send({response: temp}); 
-      }); 
+      });*/ 
     });
   } else {
     res.send({error: 'payload required'}); 
@@ -181,15 +118,92 @@ router.get('/logic').bind(function (req, res, params) {
 });
 
 router.get('/read').bind(function (req, res, params) { 
-  nexo_client.poolFrom(function() {
-    res.send({response: nexo_client.readBuffer()}); 
+  nexo.poolFrom(function() {
+    res.send(nexo.readBuffer()); 
   });
 });
 
-if ((settings_file.proxy.host == '127.0.0.1') || (settings_file.proxy.host == '::1') || (settings_file.proxy.host == 'localhost')) {
+function isInt(n){
+  return typeof n=="number" && isFinite(n) && n%1===0;
+}
+
+router.get('/add').bind(function (req, res, params) { 
+  if (params.relay && params.deviceID) {
+    var id = parseInt(params.deviceID);
+    if (isInt(id)) {
+      settings.ids[params.relay] = id;
+      // Write out the settings file
+      fs.writeFile(settings_file + '.tmp', JSON.stringify(settings, null, 2), function(err) {
+          if(err) {
+            proxy_debug('Error writing file ' + err);
+          } else {
+            fs.createReadStream(settings_file + '.tmp').pipe(fs.createWriteStream(settings_file));
+          }
+      }); 
+      res.send({result: 'OK'}); 
+    } else {
+      res.send({error: 'deviceID must be int'}); 
+    }
+  } else {
+    res.send({error: 'relay & deviceID required'}); 
+  }
+});
+
+router.get('/update').bind(function (req, res, params) { 
+  fibaro.call('virtualDevices', {}, function(err, data) {
+    fibaro_debug('Devices (error ' + err + ')');
+    if (err) {
+      res.send({error: 'fibaro response error ' + err})
+    } else {
+      var host, port;
+      if (local_proxy && local_host != '') {
+        host = local_host;
+        port = settings.proxy.port;
+      } else {
+        host = settings.proxy.host;
+        port = settings.proxy.port;
+      }
+      settings.ids = {};
+      data.forEach( function process_device(device) {
+        if (device.enabled && device.properties.ip == host && device.properties.port == port) {    
+          var id = device.id;
+          device.properties.rows.forEach( function process_row(row) {
+            row.elements.forEach( function process_element(element) {
+              if (element.main) {
+                fibaro_debug(element.name + ':' + id);
+                settings.ids[element.name] = id;
+              }
+            });
+          });      
+        }
+      });
+      // Write out the settings file
+      fs.writeFile(settings_file + '.tmp', JSON.stringify(settings, null, 2), function(err) {
+          if(err) {
+            proxy_debug('Error writing file ' + err);
+          } else {
+            fs.createReadStream(settings_file + '.tmp').pipe(fs.createWriteStream(settings_file));
+          }
+      }); 
+      res.send({result: 'OK'}); 
+    }
+  });
+});
+
+/*
+ * HTTP Proxy
+ */
+
+require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+  proxy_debug('local addr: '+add);
+  local_host = add;
+})
+  
+if ((settings.proxy.host == '127.0.0.1') || (settings.proxy.host == '::1') || (settings.proxy.host == 'localhost')) {
   require('http').createServer(function (request, response) {
     proxy_debug('Request ' + request.url);
-        
+    local_proxy = true;
+
     var body = "";
 
     request.addListener('data', function (chunk) { body += chunk });
@@ -204,5 +218,5 @@ if ((settings_file.proxy.host == '127.0.0.1') || (settings_file.proxy.host == ':
     });
   })
 
-  .listen(settings_file.proxy.port);
+  .listen(settings.proxy.port);
 }
