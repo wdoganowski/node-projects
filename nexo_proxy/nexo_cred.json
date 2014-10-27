@@ -10,14 +10,5 @@
   "proxy": {
     "host": "127.0.0.1",
     "port": 8081
-  },
-  "fibaro": {
-    "host": "192.168.0.106",
-    "port": 80,
-    "user": "admin",
-    "password": "admin"
-  },
-  "ids": {
-    "dsal6": 12
   }
 }
