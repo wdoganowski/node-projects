@@ -36,6 +36,21 @@ module.exports = {
     return this.relay( rel, 'off' );
   },
 
+  relay_toggle: function (sw, rel, state) {
+    nexo_debug ( '[' + sw + '] > ' + state );
+
+    if (state) {
+      this.relay_off( rel );
+      this.logic( sw + 'lf' );
+      return false;
+
+    } else {
+      this.relay_on( rel );
+      this.logic( sw + 'lo' );
+      return true;
+    }    
+  },
+
   relay_check: function (rel, callback) {
     nexo_debug( '[relay_check] ' + rel );
 
