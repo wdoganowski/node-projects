@@ -15,40 +15,25 @@ module.exports = {
   relay: function (rel, state) {
     nexo_debug( '[relay] ' + this.relay_url( state, rel ) );
 
-    http.get( this.relay_url( state, rel ) );/*, function (res) {
+    http.get( this.relay_url( state, rel ) /*, function (res) {
       nexo_debug( '[relay] response: ' + res.statusCode );
       return true;
-    }).on( 'error', function (err) {
+    }*/).on( 'error', function (err) {
       nexo_debug( '[relay] error: ' + err.message );
       return false;
-    })*/
+    })
   },
 
   relay_on: function (rel) {
     nexo_debug( '[relay_on] ' + rel );
 
-    return this.relay( rel, 'on' );
+    this.relay( rel, 'on' );
   },
 
   relay_off: function (rel) {
     nexo_debug( '[relay_off] ' + rel );
 
-    return this.relay( rel, 'off' );
-  },
-
-  relay_toggle: function (sw, rel, state) {
-    nexo_debug ( '[' + sw + '] > ' + state );
-
-    if (state) {
-      this.relay_off( rel );
-      this.logic( sw + 'lf' );
-      return false;
-
-    } else {
-      this.relay_on( rel );
-      this.logic( sw + 'lo' );
-      return true;
-    }    
+    this.relay( rel, 'off' );
   },
 
   relay_check: function (rel, callback) {

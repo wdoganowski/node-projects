@@ -29,17 +29,17 @@ function poolingLoop () {
       var buff = nexo.readBuffer();
       client_debug( 'Message ' + buff );
       if (message_listener) {
-        client_debug( 'message: ' + sprintf( message_listener, buff ) );
-        http.get( sprintf( message_listener, buff/*.replace( ' ', '%20' )*/ ) );/*, function (res) {
+        client_debug( sprintf( message_listener, buff ) );
+        http.get( sprintf( message_listener, buff ) /*, function (res) {
           client_debug( 'response: ' + res.statusCode );
-        }).on( 'error', function (err) {
+        }*/).on( 'error', function (err) {
           client_debug( 'error: ' + err.message );
-        });*/
+        });
       } else {
         client_debug( 'Message listener not registered' );
       }
     }
-    setTimeout( poolingLoop, 10 );
+    setImmediate( poolingLoop );
   });
 }
 
@@ -59,6 +59,21 @@ var proxy_debug = require( 'debug' )( 'proxy' ),
     router = new( require( 'journey' ).Router ),
     util = require( 'util' );
 
+router.get( '/message' ).bind(function ( req, res, params ) { 
+  if ( params.payload ) {
+    if (message_listener) {
+      setImmediate( function() {
+        http.get( sprintf( message_listener, params.payload ) );
+      });
+      res.send( {response:'OK'} ); 
+    } else {
+      res.send( 404, {}, {error: 'Message listener not registered'} );
+    }
+  } else {
+    res.send( 400, {}, {error: 'payload required'} ); 
+  }
+});
+
 router.get( '/version' ).bind(function ( req, res ) { 
   res.send( {version: settings.version} ); 
 });
@@ -74,10 +89,10 @@ function checkState ( relay, res ) {
         res.send( {result: 'off'} );
         break;
       default:
-        res.send( 404, {}, {error: 'unknown result'} );
+        res.send( 404, {}, {error: 'unknown result ' + temp} );
     }
   });  
-}
+};
 
 router.get( '/on' ).bind( function ( req, res, params ) { 
   if ( params.relay ) {

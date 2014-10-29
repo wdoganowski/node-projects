@@ -26,8 +26,13 @@ function registerListener (addr) {
 }
 
 require('dns').lookup(require('os').hostname(), function (err, addr, fam) {
-  hommy_debug( '[listener] registering' );
-  registerListener ( addr );
+  if (addr) {
+    hommy_debug( '[listener] registering ' + addr );
+    registerListener ( addr );
+  } else {
+    hommy_debug( '[listener] can not determine ip of ' + require('os').hostname() );  
+    process.exit(1);  
+  }
 })
 
 /*
@@ -60,9 +65,9 @@ require( 'http' ).createServer( function ( request, response ) {
  router.get( '/call' ).bind( function ( req, res, params ) { 
   if ( params.function ) {
     if ( rules[params.function] && typeof rules[params.function] === 'function' ) {
-      setTimeout(function() {
+      setImmediate(function() {
         rules[params.function]( params );        
-      }, 10);
+      });
       res.send( {result: 'OK'} );      
     } else {
       res.send( 404, {}, {error: 'unknown message'} );
