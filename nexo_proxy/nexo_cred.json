@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "nexo": {
+    "host": "192.168.0.194",
+    "port": 1024,
+    "password": "",
+    "pass_md5": "81dc9bdb52d04dc20036dbd8313ed055",
+    "card_addr": "00000000"
+  },
+  "proxy": {
+    "host": "127.0.0.1",
+    "port": 8081
+  }
+}
