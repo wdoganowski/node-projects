@@ -51,7 +51,7 @@ var Rules = {
     kuchnia_dol.toggle();
   },
   pir_kuchnia_active: function () {
-    if ( !kuchnia_gora.is_set && !kuchnia_dol.is_set ) {
+    if ( !kuchnia_timer.is_set && !kuchnia_gora.is_on && !kuchnia_dol.is_on ) {
       nexo.relay_on( 'kuchnia_dol' );
       kuchnia_timer.set( 5*60*1000, function () {
         nexo.relay_off( 'kuchnia_dol' )
