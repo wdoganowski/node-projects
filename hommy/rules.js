@@ -27,6 +27,7 @@ var Rules = {
   // Utils
   //
   init: function () {
+    nexo.logic( 'ogr1lux' ); // Ask for value of the sensor
   },
 
   //
@@ -109,10 +110,10 @@ var Rules = {
   //
   // Ogrod
   //
-  sens_garden_1_lux_low: function () {
+  sens_ogrod_1_lux_low: function () {
     lux_low = true;
   },
-  sens_garden_1_lux_high: function () {
+  sens_ogrod_1_lux_high: function () {
     lux_low = false;
     kuchnia_timer.reset();
   },
