@@ -13,6 +13,7 @@ Timer.prototype.set = function(timeout, callback) {
     timer_debug( '[set] clear');
     clearTimeout( this.reference );
   }
+  this.is_set - true;
   this.reference = setTimeout( function() {
     timer_debug( '[set] callback');
     this.is_set = false;
@@ -23,9 +24,10 @@ Timer.prototype.set = function(timeout, callback) {
 Timer.prototype.reset = function() {
   if ( this.is_set ) {
     timer_debug( '[reset] clear');
+    this.is_set = false;
     clearTimeout( this.reference );
+    callback();
   }
-  this.is_set = false;
 };
 
 module.exports = Timer;
