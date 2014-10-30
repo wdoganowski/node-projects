@@ -13,6 +13,8 @@ var salon_gora = new Relay( 'salon_gora', ['salo1'] ),
 
 var kuchnia_timer = new Timer();
 
+var lux_low = true;
+
 var Rules = {
   // wpp_xxx_down      - multi pressed
   // wpp_xxx_up        - multi released
@@ -51,7 +53,7 @@ var Rules = {
     kuchnia_dol.toggle();
   },
   pir_kuchnia_active: function () {
-    if ( !kuchnia_timer.is_set && !kuchnia_gora.is_on && !kuchnia_dol.is_on ) {
+    if ( lux_low && !kuchnia_timer.is_set && !kuchnia_gora.is_on && !kuchnia_dol.is_on ) {
       nexo.relay_on( 'kuchnia_dol' );
       kuchnia_timer.set( 5*60*1000, function () {
         nexo.relay_off( 'kuchnia_dol' )
@@ -103,6 +105,18 @@ var Rules = {
   wpp_ogrod_2_click: function () {
     ogrod_zim_gora.toggle();
   },
+
+  //
+  // Ogrod
+  //
+  sens_garden_1_lux_low: function () {
+    lux_low = true;
+  },
+  sens_garden_1_lux_high: function () {
+    lux_low = false;
+    kuchnia_timer.reset();
+  },
+
 
 }
 
