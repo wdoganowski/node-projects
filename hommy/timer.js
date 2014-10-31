@@ -8,12 +8,12 @@ function Timer () {
   this.reference = null;
 }
 
-Timer.prototype.set = function(timeout, callback) {
+Timer.prototype.set = function(callback, timeout) {
   if ( this.is_set ) {
     timer_debug( '[set] clear');
     clearTimeout( this.reference );
   }
-  this.is_set - true;
+  this.is_set = true;
   this.reference = setTimeout( function() {
     timer_debug( '[set] callback');
     this.is_set = false;

@@ -56,9 +56,9 @@ var Rules = {
   pir_kuchnia_active: function () {
     if ( lux_low && !kuchnia_timer.is_set && !kuchnia_gora.is_on && !kuchnia_dol.is_on ) {
       nexo.relay_on( 'kuchnia_dol' );
-      kuchnia_timer.set( 5*60*1000, function () {
+      kuchnia_timer.set( function () {
         nexo.relay_off( 'kuchnia_dol' )
-      });
+      }, 5*60*1000 );
     }
   },
 
