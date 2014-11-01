@@ -20,9 +20,8 @@ var Rpi = {
     setInterval ( function () {
       njds.drives( function (err, drives) {
         njds.drivesDetail( drives, function (err, data) {
-          used_disk = 0;
           /* Get drive used percentage */
-          used_disk = Math.round( 1000 * parseInt( 100 * data[0].used ) / parseInt( 100 * data[0].total ) ) / 10;
+          used_disk = Math.round( 1000 * parseInt(data[0].used) / parseInt(data[0].total) ) / 10;
         });
       })
     }, interval );
