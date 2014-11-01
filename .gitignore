@@ -2,3 +2,5 @@
 node_modules/debug/
 node_modules/journey/
 node_modules/sprintf-js/
+node_modules/nodejs-disks/
+node_modules/thingspeakclient/
