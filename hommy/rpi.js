@@ -39,9 +39,9 @@ var Rpi = {
     ping_count = 0;
     ping_total = 0;
     ping.on('ping', function(data){
-      //rpi_debug('[ping] %s: time: %d ms', data.host, data.time);
-      ping_total += data.time;
+      ping_total += parseInt(data.time);
       ping_count += 1;
+      // rpi_debug( '[ping] %s: time: %d ms -> %d %d', data.host, data.time, ping_count, ping_total );
     });
     // opes per second
     setInterval( function () {
@@ -99,7 +99,8 @@ var Rpi = {
   },
   ping: { // field6
     report: function () {
-      var ping_time =  Math.round( 10 * ping_total / ping_count ) / 10; // average over interval
+      var ping_time;
+      ping_time  = Math.round( 10 * ping_total / ping_count ) / 10; // average over interval
       ping_total = 0;
       ping_count = 0;
       return ping_time;
