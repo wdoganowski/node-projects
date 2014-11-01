@@ -4,8 +4,8 @@ var fs = require('fs'),
     os = require('os'),
     njds = require('nodejs-disks');
 
-var interval = 60*1000,
-    temp, free_disk;
+var interval = /*60**/1000,
+    temp, used_disk;
 
 var Rpi = {
   init: function () {
@@ -16,15 +16,18 @@ var Rpi = {
         var temp = Math.round( parseInt(data) / 100 ) / 10;
       })     
     }, interval );
-    // free disk
+    // used disk
     setInterval ( function () {
       njds.drives( function (err, drives) {
         njds.drivesDetail( drives, function (err, data) {
-          free_disk = 0;
+          var total = 0,
+              used_disk = 0;
           for(var i = 0; i<data.length; i++) {
-            /* Get drive free percentage */
-            free_disk += parseInt( data[i].freePer );
+            /* Get drive used percentage */
+            used_disk += parseInt( data[i].used );
+            total += parseInt( data[i].total );
           }
+          used_disk = Math.round( 1000 * used_disk / total ) / 10;
         });
       })
     }, interval );
@@ -62,7 +65,7 @@ var Rpi = {
   },
   disk: {
     report: function () {
-      return free_disk;
+      return used_disk;
     }
   },
   temperature: {
@@ -78,4 +81,3 @@ var Rpi = {
 }
 
 module.exports = Rpi;   
-    
