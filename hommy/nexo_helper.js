@@ -56,6 +56,10 @@ module.exports = {
     nexo_debug( '[logic] ' + cmd );
 
     http.get( 'http://' + settings.proxy.host + ':' + settings.proxy.port + '/logic?payload=' + cmd );
-  }
+  },
+
+  report: function (callback) {
+    http.get( 'http://' + settings.proxy.host + ':' + settings.proxy.port + '/report', callback );
+  },
 
 }

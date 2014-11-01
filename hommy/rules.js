@@ -123,13 +123,14 @@ var rules = {
     {
       id:     17721,
       key:    '0MF29PDE1TM12KY0',
-      length: 6,
+      length: 7,
       field1: rpi.cpu_user,
       field2: rpi.cpu_sys,
       field3: rpi.memory,
       field4: rpi.disk,
       field5: rpi.temperature,
       field6: rpi.ping,
+      field7: rpi.ops_per_sec,
     },
     {
       id:     17776,

@@ -2,10 +2,12 @@
 
 var fs = require('fs'),
     os = require('os'),
-    njds = require('nodejs-disks');
+    util = require( 'util' ),
+    njds = require('nodejs-disks'),
+    nexo = require('./nexo_helper');
 
 var interval = 60*1000,
-    temp, used_disk;
+    temperature, used_disk, ops_per_sec;
 
 var Rpi = {
   init: function () {
@@ -13,11 +15,11 @@ var Rpi = {
     setInterval( function () {
       fs.readFile('/sys/class/thermal/thermal_zone0/temp', function (err, data) { 
         //Convert the output from millicentrigrades to centigrades. 
-        var temp = Math.round( parseInt(data) / 100 ) / 10;
+        var temperature = Math.round( parseInt(data) / 100 ) / 10;
       })     
     }, interval );
     // used disk
-    setInterval ( function () {
+    setInterval( function () {
       njds.drives( function (err, drives) {
         njds.drivesDetail( drives, function (err, data) {
           /* Get drive used percentage */
@@ -25,8 +27,19 @@ var Rpi = {
         });
       })
     }, interval );
+    // opes per second
+    setInterval( function () {
+      nexo.report( function (res) {
+        if (res.statusCode == 200) {
+          res.on('data', function (chunk) {
+            var report = JSON.parse(chunk);
+            ops_per_sec = Math.round( 10 * report.total / report.period ) / 10;
+          });        
+        }
+      })
+    }, interval);
   },
-  cpu_user: {
+  cpu_user: { // field1
     report: function () {
       var user = 0,
           total = 0,
@@ -39,7 +52,7 @@ var Rpi = {
       return Math.round(1000 * user / total) / 10;
     }
   },
-  cpu_sys: {
+  cpu_sys: { // field
     report: function () {
       var sys = 0,
           total = 0,
@@ -52,24 +65,29 @@ var Rpi = {
       return Math.round(1000 * sys / total) / 10;
     }
   },
-  memory: {
+  memory: { // field3
     report: function () {
       return Math.round(((os.totalmem() - os.freemem()) / os.totalmem()) * 100);
     }
   },
-  disk: {
+  disk: { // field4
     report: function () {
       return used_disk;
     }
   },
-  temperature: {
+  temperature: { // field5
     report: function () {
-      return temp;
+      return temperature;
     }
   },
-  ping: {
+  ping: { // field6
     report: function () {
       return 0;
+    }
+  },
+  ops_per_sec: { // field6
+    report: function () {
+      return ops_per_sec;
     }
   },
 }

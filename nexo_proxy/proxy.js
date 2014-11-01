@@ -14,16 +14,27 @@ var settings_file = './nexo_cred.json',
     message_listener = null,
     sprintf = require("sprintf-js").sprintf;
 
+var stat_interval_counter = 0,    // counts number of stat intervals
+    stat_operations_counter = 0,  // total number of operations per interval
+    current_operations_count = 0; // number of operations per interval
+
 nexo.setConfig( settings.nexo );
 
 nexo.connectTo( function connected () {
   client_debug(' CONNECTED TO: ' + nexo.host + ':' + nexo.port );
 
+  setInterval( function() {
+    stat_interval_counter += 1;
+    stat_operations_counter += current_operations_count;
+    current_operations_count = 0 ;
+  }, 1000);
+  
   nexo.on( 'close', reconnect );
   poolingLoop();
 })
 
 function poolingLoop () {
+  current_operations_count += 1;
   nexo.poolFrom( function () {
     if ( nexo.bufferLength() ) {
       var buff = nexo.readBuffer();
@@ -76,6 +87,16 @@ router.get( '/message' ).bind(function ( req, res, params ) {
 
 router.get( '/version' ).bind(function ( req, res ) { 
   res.send( {version: settings.version} ); 
+});
+
+router.get( '/report' ).bind(function ( req, res ) { 
+  res.send({
+    total: stat_operations_counter, // number of ops counted
+    period: stat_interval_counter,  // [s]
+  }); 
+  stat_operations_counter = 0;
+  stat_interval_counter = 0;
+  current_operations_count = 0;
 });
 
 function checkState ( relay, res ) {
