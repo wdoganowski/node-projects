@@ -4,11 +4,12 @@ var relay_debug = require( 'debug' )( 'relay' ),
     util = require( 'util' ),
     nexo = require( './nexo_helper' );
 
-function Relay (relay, leds) {
+function Relay (relay, leds, power) {
   // Set properties
   this.relay = relay;
   this.leds = [].concat( leds );
   this.is_on = false;
+  this.power = power;
 
   this.sync();
 }
@@ -49,6 +50,10 @@ Relay.prototype.toggle = function() {
   } else {
     this.on();
   }
+};
+
+Relay.prototype.report = function(interval) {
+  return this.is_on? Math.round( this.power * interval / (60*60) ) / 1000 : 0; // value in Wh converted to interval
 };
 
 module.exports = Relay;

@@ -6,7 +6,9 @@ var settings_file = './hommy_cred.json',
     hommy_debug = require( 'debug' )( 'hommy' ),
     router = new( require( 'journey' ).Router ),
     util = require( 'util' ),
-    http = require( 'http' );
+    http = require( 'http' ),
+    Report = require( './report' ),
+    report = new Report( rules.channels, 60*1000 );
 
 hommy_debug( 'Hommy version ' + settings.version);
 
