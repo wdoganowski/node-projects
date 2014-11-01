@@ -1,6 +1,7 @@
 "use strict";
 
-var fs = require('fs'),
+var rpi_debug = require( 'debug' )( 'rpi' ),
+    fs = require('fs'),
     os = require('os'),
     util = require( 'util' ),
     njds = require('nodejs-disks'),
@@ -16,6 +17,7 @@ var Rpi = {
       fs.readFile('/sys/class/thermal/thermal_zone0/temp', function (err, data) { 
         //Convert the output from millicentrigrades to centigrades. 
         var temperature = Math.round( parseInt(data) / 100 ) / 10;
+        rpi_debug( '[temperature] ' + data + ' -> ' + temperature );
       })     
     }, interval );
     // used disk
@@ -24,6 +26,7 @@ var Rpi = {
         njds.drivesDetail( drives, function (err, data) {
           /* Get drive used percentage */
           used_disk = Math.round( 1000 * parseInt(data[0].used) / parseInt(data[0].total) ) / 10;
+        rpi_debug( '[used_disk] ' + data[0].used + ' of ' + data[0].total + ' -> ' + used_disk );
         });
       })
     }, interval );
@@ -34,6 +37,7 @@ var Rpi = {
           res.on('data', function (chunk) {
             var report = JSON.parse(chunk);
             ops_per_sec = Math.round( 10 * report.total / report.period ) / 10;
+            rpi_debug( '[ops_per_sec] ' + report.total + ' ops per ' + report.period + 's -> ' + ops_per_sec );
           });        
         }
       })
@@ -82,7 +86,7 @@ var Rpi = {
   },
   ping: { // field6
     report: function () {
-      return 0;
+      return undefined;
     }
   },
   ops_per_sec: { // field6

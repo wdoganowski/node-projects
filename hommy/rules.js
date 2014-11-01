@@ -63,7 +63,13 @@ var rules = {
     relays['kuchnia_dol'].toggle();
   },
   pir_kuchnia_active: function () {
-    if ( states['lux_low'].is_set && !timers['kuchnia_timer'].is_set && 
+    rules_debug( 
+      ' lux_low ' + states['lux_low'].is_on + 
+      ' kuchnia_timer ' + timers['kuchnia_timer'].is_on + 
+      ' kuchnia_gora ' + relays['kuchnia_gora'].is_on + 
+      ' kuchnia_dol ' + relays['kuchnia_dol'].is_on
+    );
+    if ( states['lux_low'].is_on && !timers['kuchnia_timer'].is_on && 
         !relays['kuchnia_gora'].is_on && !relays['kuchnia_dol'].is_on ) {
       nexo.relay_on( 'kuchnia_dol' );
       timers['kuchnia_timer'].set( function () {
