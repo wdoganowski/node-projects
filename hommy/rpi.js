@@ -16,7 +16,7 @@ var Rpi = {
     setInterval( function () {
       fs.readFile('/sys/class/thermal/thermal_zone0/temp', function (err, data) { 
         //Convert the output from millicentrigrades to centigrades. 
-        var temperature = Math.round( parseInt(data) / 100 ) / 10;
+        temperature = Math.round( parseInt(data) / 100 ) / 10;
         rpi_debug( '[temperature] ' + data + ' -> ' + temperature );
       })     
     }, interval );
@@ -56,7 +56,7 @@ var Rpi = {
       return Math.round(1000 * user / total) / 10;
     }
   },
-  cpu_sys: { // field
+  cpu_sys: { // field2
     report: function () {
       var sys = 0,
           total = 0,
