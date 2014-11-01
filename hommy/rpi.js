@@ -10,7 +10,8 @@ var rpi_debug = require( 'debug' )( 'rpi' ),
     nexo = require('./nexo_helper');
 
 var interval = 60*1000,
-    temperature, used_disk, ops_per_sec, ping, ping_time;
+    temperature, used_disk, ops_per_sec, 
+    ping, ping_count, ping_total;
 
 var Rpi = {
   init: function () {
@@ -35,9 +36,12 @@ var Rpi = {
     // ping
     Ping.configure();
     ping = new Ping( settings.nexo.host );
+    ping_count = 0;
+    ping_total = 0;
     ping.on('ping', function(data){
-      rpi_debug('[ping] %s: time: %d ms', data.host, data.time);
-      ping_time = data.time;
+      //rpi_debug('[ping] %s: time: %d ms', data.host, data.time);
+      ping_total += data.time;
+      ping_count += 1;
     });
     // opes per second
     setInterval( function () {
@@ -80,7 +84,7 @@ var Rpi = {
   },
   memory: { // field3
     report: function () {
-      return Math.round(((os.totalmem() - os.freemem()) / os.totalmem()) * 100);
+      return Math.round( ((os.totalmem() - os.freemem()) / os.totalmem()) * 100 );
     }
   },
   disk: { // field4
@@ -95,6 +99,9 @@ var Rpi = {
   },
   ping: { // field6
     report: function () {
+      var ping_time =  Math.round( 10 * ping_total / ping_count ) / 10; // average over interval
+      ping_total = 0;
+      ping_count = 0;
       return ping_time;
     }
   },
