@@ -1,14 +1,16 @@
 "use strict";
 
 var rpi_debug = require( 'debug' )( 'rpi' ),
+    settings = require( './hommy_cred.json' ),
     fs = require('fs'),
     os = require('os'),
+    Ping = require('./ping'),
     util = require( 'util' ),
     njds = require('nodejs-disks'),
     nexo = require('./nexo_helper');
 
 var interval = 60*1000,
-    temperature, used_disk, ops_per_sec;
+    temperature, used_disk, ops_per_sec, ping, ping_time;
 
 var Rpi = {
   init: function () {
@@ -30,6 +32,13 @@ var Rpi = {
         });
       })
     }, interval );
+    // ping
+    Ping.configure();
+    ping = new Ping( settings.nexo.host );
+    ping.on('ping', function(data){
+      rpi_debug('[ping] %s: time: %d ms', data.host, data.time);
+      ping_time = data.time;
+    });
     // opes per second
     setInterval( function () {
       nexo.report( function (res) {
@@ -86,7 +95,7 @@ var Rpi = {
   },
   ping: { // field6
     report: function () {
-      return undefined;
+      return ping_time;
     }
   },
   ops_per_sec: { // field6
