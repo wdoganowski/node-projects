@@ -15,13 +15,16 @@ hommy_debug( 'Hommy version ' + settings.version);
 // Register listener
 
 function registerListener (addr) {
-  http.get( 'http://' + settings.proxy.host + ':' + settings.proxy.port + '/listener?ip=' + addr + '&port=' + settings.hommy.port + '&uri=/call?function=%s' , function (res) {
+  http.get( 'http://' + settings.proxy.host + ':' + settings.proxy.port 
+    + '/listener?ip=' + addr + '&port=' + settings.hommy.port 
+    + '&uri=/call?function=%s' , function (res) {
     hommy_debug( '[listener] response: ' + res.statusCode );
 
     // Init
     rules.init();
 
-  }).on( 'error', function (err) {
+  })
+  .on( 'error', function (err) {
     hommy_debug( '[listener] error: ' + err.message );
     setTimeout(function() { registerListener( addr ) }, 1000);
   });  
@@ -57,14 +60,13 @@ require( 'http' ).createServer( function ( request, response ) {
       });
   });
 })
-
 .listen( settings.hommy.port );
 
 /*
  * Routes
  */
 
- router.get( '/call' ).bind( function ( req, res, params ) { 
+router.get( '/call' ).bind( function ( req, res, params ) { 
   if ( params.function ) {
     if ( rules[params.function] && typeof rules[params.function] === 'function' ) {
       setImmediate(function() {

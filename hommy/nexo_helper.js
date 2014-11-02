@@ -15,10 +15,8 @@ module.exports = {
   relay: function (rel, state) {
     nexo_debug( '[relay] ' + this.relay_url( state, rel ) );
 
-    http.get( this.relay_url( state, rel ) /*, function (res) {
-      nexo_debug( '[relay] response: ' + res.statusCode );
-      return true;
-    }*/).on( 'error', function (err) {
+    http.get( this.relay_url(state, rel) )
+    .on( 'error', function (err) {
       nexo_debug( '[relay] error: ' + err.message );
       return false;
     })
@@ -39,27 +37,35 @@ module.exports = {
   relay_check: function (rel, callback) {
     nexo_debug( '[relay_check] ' + rel );
 
-    http.get( this.relay_url( 'check', rel ), 
-      function (res) {
-        nexo_debug( '[relay_check] response: ' + res.statusCode );
-        res.on('data', function (chunk) {
-          nexo_debug( '[relay_check] data: ' + chunk );
-          callback( JSON.parse(chunk).result == 'on' );
-        });
-      }).on( 'error', function (err) {
-        nexo_debug( '[relay_check] error: ' + err.message );
-        callback.call( 'off' );
-      })
+    http.get( this.relay_url( 'check', rel ), function (res) {
+      nexo_debug( '[relay_check] response: ' + res.statusCode );
+      res.on('data', function (chunk) {
+        nexo_debug( '[relay_check] data: ' + chunk );
+        callback( JSON.parse(chunk).result == 'on' );
+      });
+    })
+    .on( 'error', function (err) {
+      nexo_debug( '[relay_check] error: ' + err.message );
+      callback.call( 'off' );
+    })
   },
 
   logic: function (cmd) {
     nexo_debug( '[logic] ' + cmd );
 
-    http.get( 'http://' + settings.proxy.host + ':' + settings.proxy.port + '/logic?payload=' + cmd );
+    http.get( 'http://' + settings.proxy.host + ':' + settings.proxy.port + '/logic?payload=' + cmd )
+    .on( 'error', function (err) {
+      nexo_debug( '[logic] error: ' + err.message );
+      return false;
+    });
   },
 
   report: function (callback) {
-    http.get( 'http://' + settings.proxy.host + ':' + settings.proxy.port + '/report', callback );
+    http.get( 'http://' + settings.proxy.host + ':' + settings.proxy.port + '/report', callback )
+    .on( 'error', function (err) {
+      nexo_debug( '[report] error: ' + err.message );
+      return false;
+    });
   },
 
 }
