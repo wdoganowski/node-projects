@@ -81,9 +81,9 @@ var rules = {
   //
   // Kotlownia (wlacznik kolo kotlowni)
   //
-  wpp_kotl_down: this.wpp_kuch_down,
-  wpp_kotl_1_click: this.wpp_kuch_1_click,
-  wpp_kotl_2_click: this.wpp_kuch_2_click,
+  wpp_kotl_down: function () {this.wpp_kuch_down()},
+  wpp_kotl_1_click: function () {this.wpp_kuch_1_click()},
+  wpp_kotl_2_click: function () {this.wpp_kuch_2_click()},
 
   //
   // Przedpokoj
@@ -125,6 +125,9 @@ var rules = {
     timers['kuchnia_timer'].reset();
   },
 
+  // 
+  // Report channels
+  //
   channels: [
     {
       id:     17721,
