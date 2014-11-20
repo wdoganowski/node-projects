@@ -6,6 +6,7 @@ var util = require( 'util' ),
     Timer = require( './timer' ),
     Relay = require( './relay' ),
     State = require( './state' ),
+    SensorTag = require( './sensortag' ),
     rpi = require( './rpi' );
 
 rpi.init();
@@ -14,7 +15,7 @@ var relays = {
   salon_gora:     new Relay( 'salon_gora', ['salo1'], 14 ), 
   kuchnia_gora:   new Relay( 'kuchnia_gora', ['kuch1', 'kotl1'], 14 + 2*14/0.8 ), 
   kuchnia_dol:    new Relay( 'kuchnia_dol', ['kuch2', 'kotl2'], 2*6/0.8 ), 
-  ogrod_zim_gora: new Relay( 'ogrod_zim_gora', ['ogro2', 'salo4'], 4*25 ),
+  ogrod_zim_gora: new Relay( 'ogrod_zim_gora', ['ogro2', 'salo4'], 4*25 )
 }
 
 var timers = {
@@ -23,6 +24,10 @@ var timers = {
 
 var states = {
   lux_low:        new State( 'ogr1lux' ),
+}
+
+var sensors = {
+  lazienka_gora_th: new SensorTag( 'bc6a29ac3471' ),
 }
 
 var rules = {
@@ -144,8 +149,10 @@ var rules = {
     {
       id:     17776,
       key:    'L304BT2C4TSE77IV',
-      length: 1,
+      length: 3,
       field1: states['lux_low'],
+      field2: sensors['lazienka_gora_th'].temp,
+      field3: sensors['lazienka_gora_th'].hum,
     },
     {
       id:     17779,
