@@ -1,4 +1,5 @@
 *_cred.json
+*.save
 node_modules/debug/
 node_modules/journey/
 node_modules/sprintf-js/
