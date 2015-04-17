@@ -5,6 +5,7 @@ var util = require( 'util' ),
     rules_debug = require( 'debug' )( 'rules' ),
     Timer = require( './timer' ),
     Relay = require( './relay' ),
+    Pioneer = require( './pioneer' ),
     State = require( './state' ),
     SensorTag = require( './sensortag' ),
     rpi = require( './rpi' );
@@ -17,6 +18,8 @@ var relays = {
   kuchnia_dol:    new Relay( 'kuchnia_dol', ['kuch2', 'kotl2'], 2*6/0.8 ), 
   ogrod_zim_gora: new Relay( 'ogrod_zim_gora', ['ogro2', 'salo4'], 4*25 )
 }
+
+var pioneer = new Pioneer( ['kuch6', 'kotl6', 'salo6', 'ogro6'], 100 )
 
 var timers = {
   kuchnia_timer:  new Timer(),
@@ -67,6 +70,9 @@ var rules = {
     timers['kuchnia_timer'].reset();
     relays['kuchnia_dol'].toggle();
   },
+  wpp_kuch_6_click: function () {
+    pioneer.toggle();
+  },
   pir_kuchnia_active: function () {
     rules_debug( 
       ' lux_low ' + states['lux_low'].is_on + 
@@ -89,6 +95,7 @@ var rules = {
   wpp_kotl_down: function () {this.wpp_kuch_down()},
   wpp_kotl_1_click: function () {this.wpp_kuch_1_click()},
   wpp_kotl_2_click: function () {this.wpp_kuch_2_click()},
+  wpp_kotl_6_click: function () {this.wpp_kuch_6_click()},
 
   //
   // Przedpokoj
@@ -107,6 +114,7 @@ var rules = {
   wpp_salon_4_click: function () {
     relays['ogrod_zim_gora'].toggle();
   },
+  wpp_salon_6_click: function () {this.wpp_kuch_6_click()},
 
   //
   // Ogrod zimowy
@@ -117,6 +125,7 @@ var rules = {
   wpp_ogrod_2_click: function () {
     relays['ogrod_zim_gora'].toggle();
   },
+  wpp_ogrod_6_click: function () {this.wpp_kuch_6_click()},
 
   //
   // Ogrod
