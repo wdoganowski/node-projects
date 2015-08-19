@@ -7,7 +7,7 @@ var util = require( 'util' ),
     Relay = require( './relay' ),
     Pioneer = require( './pioneer' ),
     State = require( './state' ),
-    SensorTag = require( './sensortag' ),
+    // SensorTag = require( './sensortag' ),
     rpi = require( './rpi' );
 
 rpi.init();
@@ -29,9 +29,9 @@ var states = {
   lux_low:        new State( 'ogr1lux' ),
 }
 
-var sensors = {
-  lazienka_gora_th: new SensorTag( 'bc6a29ac3471' ),
-}
+//var sensors = {
+//  lazienka_gora_th: new SensorTag( 'bc6a29ac3471' ),
+//}
 
 var rules = {
   // wpp_xxx_down      - multi pressed
@@ -158,10 +158,10 @@ var rules = {
     {
       id:     17776,
       key:    'L304BT2C4TSE77IV',
-      length: 3,
+      length: 1,
       field1: states['lux_low'],
-      field2: sensors['lazienka_gora_th'].temp,
-      field3: sensors['lazienka_gora_th'].hum,
+      //field2: sensors['lazienka_gora_th'].temp,
+      //field3: sensors['lazienka_gora_th'].hum,
     },
     {
       id:     17779,

@@ -1,0 +1,26 @@
+{
+  "name": "nexo_proxy",
+  "version": "1.0.0",
+  "author": {
+    "name": "Wojciech Doganowski",
+    "email": "wojciech@doganowscy.com",
+    "url": "https://github.com/wdoganowski"
+  },
+  "license": {
+    "type": "MIT",
+    "url": "http://dogan.mit-license.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wdoganowski/node-projects.git"
+  },
+  "scripts": {
+    "start": "node proxy.js",
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "debug": "~2.2.0",
+    "sprintf-js": "~1.0.3",
+    "journey": "~0.4.0-pre-3"
+  }
+}
