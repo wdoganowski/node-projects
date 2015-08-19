@@ -44,8 +44,6 @@ Get another coffee.
 
 ### Install node.js and npm
 
-This should work, but does not:
-
 This is from http://conoroneill.net/download-compiled-version-of-nodejs-0120-stable-for-raspberry-pi-here to avoid compiling from source:
 
 ```bash
@@ -85,7 +83,7 @@ cd ~/git/hommy_start_scripts
 
 ## Verification
 
-```bash
+```sh
 sudo /etc/init.d/nexod start
   starting nexo-proxy deamon /home/pi/git/node-projects/nexo_proxy/proxy.js
   nohup: redirecting stderr to stdout
