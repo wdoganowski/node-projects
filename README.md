@@ -25,13 +25,13 @@ Open the PI’s configuration screen (in the terminal window) by typing:
 ```bash
 sudo raspi-config
 ```
-Run the bottom option just to make sure you have the latest version of the configuration software:
-  **8 Advanced Options /  A0 Update**
-Run the second option:
-  **1 Expand Filesystem**
-Click:
-  **Finish**
-On question _Would you like to reboot now?_ answer
+Run the bottom option just to make sure you have the latest version of the configuration software:  
+  **8 Advanced Options /  A0 Update**  
+Run the second option:  
+  **1 Expand Filesystem**  
+Click:  
+  **Finish**  
+On question _Would you like to reboot now?_ answer  
   **Yes**
 
 ### Update packages
