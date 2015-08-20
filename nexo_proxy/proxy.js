@@ -12,11 +12,15 @@ var settings_file = './nexo_cred.json',
     nexo = new Nexo(), 
     http = require( 'http' ),
     message_listener = null,
-    sprintf = require("sprintf-js").sprintf;
+    sprintf = require("sprintf-js").sprintf,
+    RpiLeds = require( 'rpi-leds' ),
+    leds = new RpiLeds();
 
 var stat_interval_counter = 0,    // counts number of stat intervals
     stat_operations_counter = 0,  // total number of operations per interval
     current_operations_count = 0; // number of operations per interval
+
+leds.status.heartbeat(); // status led will send heartbeat until the report will be called by client
 
 nexo.setConfig( settings.nexo );
 
@@ -25,6 +29,8 @@ nexo.connectTo( function connected () {
 
   setInterval( function() {
     stat_interval_counter += 1;
+    // in case the stats were not read in 100 secs - error with heartbeat
+    if ( stat_interval_counter > 100 ) leds.status.heartbeat(); 
     stat_operations_counter += current_operations_count;
     current_operations_count = 0 ;
   }, 1000);
@@ -94,6 +100,12 @@ router.get( '/report' ).bind(function ( req, res ) {
     total: stat_operations_counter, // number of ops counted
     period: stat_interval_counter,  // [s]
   }); 
+  // When there is no ops with Nexo, send hartbeat, otherwise just blink
+  if ( current_operations_count ) { 
+    leds.status.blink()
+  } else {
+    leds.status.heartbeat()
+  }
   stat_operations_counter = 0;
   stat_interval_counter = 0;
   current_operations_count = 0;
