@@ -2,6 +2,7 @@
 
 var debug = require( 'debug' )( 'esp_dht21' ),
     http = require( 'http' ),
+    async = require('async'),
     util = require( 'util' );
 
 function ESP_DHT21 ( ip ) {
@@ -26,45 +27,84 @@ function ESP_DHT21 ( ip ) {
 }
 
 ESP_DHT21.prototype.init = function() {
-  debug( 'checking existance of ESP_DHT21 at %s', this.ip );
 
-  var response;
-  if( this.http_get( 'id', '', response ) ) {
-    this.connected = response.connected;
-    this.id = response.id;
-    this.name = response.name;
-  } else {
-    
-  }
+  async.series([
 
-  debug( 'setting up %s', this.id );
-  // setup ticker
-  this.http_get( 'set_ticker', 300 );
-  
-  this.sync();
+    function(callback) {
+      debug( 'checking existance of ESP_DHT21 at %s', this.ip );
+      this.http_get( 'id', '', function( response ) {
+        this.connected = response.connected;
+        this.id = response.id;
+        this.name = response.name;
+        callback();
+      }.bind(this);
+    }.bind( this ),
 
+    function(callback) {
+      debug( 'setting up %s', this.id );
+      this.http_get( 'set_ticker', 300, callback );
+    }.bind( this ),
+
+    function(callback) {
+      this.sync( callback );
+    }.bind( this ),
+
+  ]);
 };
 
-ESP_DHT21.prototype.sync = function() {
+ESP_DHT21.prototype.sync = function( callback ) {
   debug( 'sync %s', this.id );
   // read parameters
-  var response;
-  if( this.http_get( 'temperature', '', response ) ) this.temp.value = response.temperature;
-  debug( this.temp.value );
+
+  async.series([
+
+    // temperature
+    function(callback) {
+      this.http_get( 'temperature', '', function( response ) {
+        if( response ) {
+          this.temp.value = response.temperature;
+          debug( 'temperature: ', this.temp.value );
+        }
+        callback();
+      }.bind(this);
+    }.bind( this ),
+
+    // humidity
+    function(callback) {
+      this.http_get( 'humidity', '', function( response ) {
+        if( response ) {
+          this.hum.value = response.humidity;
+          debug( 'humidity: ', this.hum.value );
+        }
+        callback();
+      }.bind(this);
+    }.bind( this ),
+
+    // feels like
+    function(callback) {
+      this.http_get( 'feelslike', '', function( response ) {
+        if( response ) {
+          this.feels.value = response.feelslike;
+          debug( 'feels like: ', this.feels.value );
+        }
+        callback();
+      }.bind(this);
+    }.bind( this ),
+
+  ]);
 }
 
-ESP_DHT21.prototype.http_get = function( uri, param, res ) {
+ESP_DHT21.prototype.http_get = function( uri, param, callback ) {
   http.get( this.get_url(uri, param), function (res) {
     debug( 'response: ' + res.statusCode );
     res.on('data', function (chunk) {
       debug( 'data: ' + chunk );
-      res = JSON.parse(chunk);
-      return true;
+      callback( JSON.parse(chunk) );
     });
   })
   .on( 'error', function (err) {
     debug( 'error: ' + err.message );
-    return false;
+    callback( undefined );
   })
 }
 
