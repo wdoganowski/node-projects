@@ -1,32 +1,40 @@
-"use strict";
+'use strict';
 
 var util = require( 'util' ),
-    nexo = require( './nexo_helper' ), 
+    nexo = require( './nexo_helper' ),
     rules_debug = require( 'debug' )( 'rules' ),
     Timer = require( './timer' ),
     Relay = require( './relay' ),
     Pioneer = require( './pioneer' ),
     State = require( './state' ),
     // SensorTag = require( './sensortag' ),
-    rpi = require( './rpi' );
+    rpi = require( './rpi' ),
+    ESP_DHT21 = require( './esp8266_dht21' ),
+    ESP_Relay = require( './esp8266_relay' );
 
 rpi.init();
 
 var relays = {
-  salon_gora:     new Relay( 'salon_gora', ['salo1'], 14 ), 
-  kuchnia_gora:   new Relay( 'kuchnia_gora', ['kuch1', 'kotl1'], 14 + 2*14/0.8 ), 
-  kuchnia_dol:    new Relay( 'kuchnia_dol', ['kuch2', 'kotl2'], 2*6/0.8 ), 
-  ogrod_zim_gora: new Relay( 'ogrod_zim_gora', ['ogro2', 'salo4'], 4*25 )
+  salon_gora:     new Relay( 'salon_gora', ['salo1'], 14 ),
+  kuchnia_gora:   new Relay( 'kuchnia_gora', ['kuch1', 'kotl1'], 14 + 2*14/0.8 ),
+  kuchnia_dol:    new Relay( 'kuchnia_dol', ['kuch2', 'kotl2'], 2*6/0.8 ),
+  ogrod_zim_gora: new Relay( 'ogrod_zim_gora', ['ogro2', 'salo4'], 4*25 ),
+  lazienka_went:  new ESP_Relay( dth21['lazienka'].ip, ['lazwe'], 2*100 ),
 }
 
 var pioneer = new Pioneer( ['kuch6', 'kotl6', 'salo6', 'ogro6'], 100 )
 
 var timers = {
   kuchnia_timer:  new Timer(),
+  lazienka_timer: new Timer(),
 }
 
 var states = {
   lux_low:        new State( 'ogr1lux' ),
+}
+
+var sensors = {
+  lazienka_dht21:       new ESP_DHT21( '192.168.0.4' ),
 }
 
 //var sensors = {
@@ -39,12 +47,20 @@ var rules = {
   // wpp_xxx_1-6_click - clicked
   // wpp_xxx_5-6_hold  - hold 0.2s
   // wpp_xxx_5-6_down  - pressed > 1s
-  // wpp_xxx_5-6_up    - released  
+  // wpp_xxx_5-6_up    - released
 
   //
   // Utils
   //
   init: function () {
+    // Control of went in lazienka
+    timers['lazienka_timer'].set( function () {
+      if( sensors['lazienka_dht21'].humidity > 60)
+        relays['lazienka_went'].on
+      else
+        relays['lazienka_went'].off;
+    }, 5*60*1000 ); // every 5 minutes
+
   },
 
   //
@@ -74,13 +90,13 @@ var rules = {
     pioneer.toggle();
   },
   pir_kuchnia_active: function () {
-    rules_debug( 
-      ' lux_low ' + states['lux_low'].is_on + 
-      ' kuchnia_timer ' + timers['kuchnia_timer'].is_on + 
-      ' kuchnia_gora ' + relays['kuchnia_gora'].is_on + 
+    rules_debug(
+      ' lux_low ' + states['lux_low'].is_on +
+      ' kuchnia_timer ' + timers['kuchnia_timer'].is_on +
+      ' kuchnia_gora ' + relays['kuchnia_gora'].is_on +
       ' kuchnia_dol ' + relays['kuchnia_dol'].is_on
     );
-    if ( states['lux_low'].is_on && !timers['kuchnia_timer'].is_on && 
+    if ( states['lux_low'].is_on && !timers['kuchnia_timer'].is_on &&
         !relays['kuchnia_gora'].is_on && !relays['kuchnia_dol'].is_on ) {
       nexo.relay_on( 'kuchnia_dol' );
       timers['kuchnia_timer'].set( function () {
@@ -139,7 +155,7 @@ var rules = {
     timers['kuchnia_timer'].reset();
   },
 
-  // 
+  //
   // Report channels
   //
   channels: [
@@ -160,8 +176,6 @@ var rules = {
       key:    'L304BT2C4TSE77IV',
       length: 1,
       field1: states['lux_low'],
-      //field2: sensors['lazienka_gora_th'].temp,
-      //field3: sensors['lazienka_gora_th'].hum,
     },
     {
       id:     17779,
@@ -171,6 +185,16 @@ var rules = {
       field2: relays['kuchnia_gora'],
       field3: relays['kuchnia_dol'],
       field4: relays['ogrod_zim_gora'],
+    },
+    {
+      id:     60782,
+      key:    '4P0NJFR9H09ZYAEJ',
+      length: 5,
+      field1: states['lux_low'],
+      field2: sensors['lazienka_dht21'].temperature,
+      field3: sensors['lazienka_dht21'].humidity,
+      field3: sensors['lazienka_dht21'].feels,
+      field3: relays['lazienka_went'],
     },
   ],
 

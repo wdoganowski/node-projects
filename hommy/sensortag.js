@@ -49,18 +49,18 @@ SensorTag.prototype.setup = function() {
 
     debug( 'setting up uuid %s', this.uuid );
     async.series([
-      
+
       // Connecting
 
       function(callback) {
         debug( 'connecting uuid %s', this.uuid );
         this.sensorTag.connect(callback);
-      }.bind( this ),       
+      }.bind( this ),
 
       function(callback) {
         debug( 'connected uuid %s', this.uuid );
         this.sensorTag.discoverServicesAndCharacteristics(callback);
-      }.bind( this ),       
+      }.bind( this ),
 
       // reading info
 
@@ -118,7 +118,7 @@ SensorTag.prototype.setup = function() {
       function(callback) {
         debug( 'enabling humidity uuid %s', this.uuid );
         this.sensorTag.enableHumidity(callback);
-      }.bind( this ),       
+      }.bind( this ),
 
       function(callback) {
         debug( 'enabling humidity notification uuid %s', this.uuid );
@@ -128,7 +128,7 @@ SensorTag.prototype.setup = function() {
            // debug( 'temperature = ' + this.temp.value + ' °C\thumidity = ' + this.hum.value + ' %' );
         }.bind( this ) );
         this.sensorTag.notifyHumidity(callback);
-      }.bind( this ),       
+      }.bind( this ),
 
     ]);
   } else {
@@ -137,7 +137,7 @@ SensorTag.prototype.setup = function() {
 }
 
 SensorTag.prototype.readInfo = [
-  
+
 
 ]
 

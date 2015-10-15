@@ -33,4 +33,3 @@ Report.prototype.tick = function() {
 };
 
 module.exports = Report;
-

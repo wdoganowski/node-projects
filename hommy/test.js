@@ -1,6 +1,6 @@
 // Test
 var Report = require( './report' ),
-    report = new Report ( 
+    report = new Report (
 [
   {
     id:     17776,

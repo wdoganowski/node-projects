@@ -10,7 +10,7 @@ var rpi_debug = require( 'debug' )( 'rpi' ),
     nexo = require('./nexo_helper');
 
 var interval = 60*1000,
-    temperature, used_disk, ops_per_sec, 
+    temperature, used_disk, ops_per_sec,
     ping, ping_count, ping_total;
 
 var Rpi;
@@ -61,11 +61,11 @@ if ( process.platform == 'darwin' ) {
     init: function () {
       // temperature
       setInterval( function () {
-        fs.readFile('/sys/class/thermal/thermal_zone0/temp', function (err, data) { 
-          //Convert the output from millicentrigrades to centigrades. 
+        fs.readFile('/sys/class/thermal/thermal_zone0/temp', function (err, data) {
+          //Convert the output from millicentrigrades to centigrades.
           temperature = Math.round( parseInt(data) / 100 ) / 10;
           rpi_debug( '[temperature] ' + data + ' -> ' + temperature );
-        })     
+        })
       }, interval );
       // used disk
       setInterval( function () {
@@ -95,7 +95,7 @@ if ( process.platform == 'darwin' ) {
               var report = JSON.parse(chunk);
               ops_per_sec = Math.round( 10 * report.total / report.period ) / 10;
               rpi_debug( '[ops_per_sec] ' + report.total + ' ops per ' + report.period + 's -> ' + ops_per_sec );
-            });        
+            });
           }
         })
       }, interval);
@@ -106,10 +106,10 @@ if ( process.platform == 'darwin' ) {
             total = 0,
             cpus = os.cpus();
         for ( var cpu in cpus ) {
-          user += cpus[cpu].times.user;    
-          for ( var type in cpus[cpu].times ) 
+          user += cpus[cpu].times.user;
+          for ( var type in cpus[cpu].times )
             total += cpus[cpu].times[type];
-        }      
+        }
         return Math.round(1000 * user / total) / 10;
       }
     },
@@ -119,10 +119,10 @@ if ( process.platform == 'darwin' ) {
             total = 0,
             cpus = os.cpus();
         for ( var cpu in cpus ) {
-          sys += cpus[cpu].times.sys;    
-          for ( var type in cpus[cpu].times ) 
-            total += cpus[cpu].times[type]; 
-        }      
+          sys += cpus[cpu].times.sys;
+          for ( var type in cpus[cpu].times )
+            total += cpus[cpu].times[type];
+        }
         return Math.round(1000 * sys / total) / 10;
       }
     },
@@ -158,4 +158,4 @@ if ( process.platform == 'darwin' ) {
   }
 }
 
-module.exports = Rpi;   
+module.exports = Rpi;

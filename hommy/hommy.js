@@ -15,8 +15,8 @@ hommy_debug( 'Hommy version ' + settings.version);
 // Register listener
 
 function registerListener (addr) {
-  http.get( 'http://' + settings.proxy.host + ':' + settings.proxy.port 
-    + '/listener?ip=' + addr + '&port=' + settings.hommy.port 
+  http.get( 'http://' + settings.proxy.host + ':' + settings.proxy.port
+    + '/listener?ip=' + addr + '&port=' + settings.hommy.port
     + '&uri=/call?function=%s' , function (res) {
     hommy_debug( '[listener] response: ' + res.statusCode );
 
@@ -27,7 +27,7 @@ function registerListener (addr) {
   .on( 'error', function (err) {
     hommy_debug( '[listener] error: ' + err.message );
     setTimeout(function() { registerListener( addr ) }, 1000);
-  });  
+  });
 }
 
 require('dns').lookup(require('os').hostname(), function (err, addr, fam) {
@@ -35,8 +35,8 @@ require('dns').lookup(require('os').hostname(), function (err, addr, fam) {
     hommy_debug( '[listener] registering ' + addr );
     registerListener ( addr );
   } else {
-    hommy_debug( '[listener] can not determine ip of ' + require('os').hostname() );  
-    process.exit(1);  
+    hommy_debug( '[listener] can not determine ip of ' + require('os').hostname() );
+    process.exit(1);
   }
 })
 
@@ -66,17 +66,17 @@ require( 'http' ).createServer( function ( request, response ) {
  * Routes
  */
 
-router.get( '/call' ).bind( function ( req, res, params ) { 
+router.get( '/call' ).bind( function ( req, res, params ) {
   if ( params.function ) {
     if ( rules[params.function] && typeof rules[params.function] === 'function' ) {
       setImmediate(function() {
-        rules[params.function]( params );        
+        rules[params.function]( params );
       });
-      res.send( {result: 'OK'} );      
+      res.send( {result: 'OK'} );
     } else {
       res.send( 404, {}, {error: 'unknown message'} );
     }
   } else {
-    res.send( 400, {}, {error: 'payload required'} ); 
+    res.send( 400, {}, {error: 'payload required'} );
   }
 });

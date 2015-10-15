@@ -60,7 +60,7 @@ Ping.configure = function(conf) {
 Ping.prototype._stop = function() {
   if(!this._process)
     return;
-  
+
   this._process.kill();
   this._process = null;
 };

@@ -16,7 +16,7 @@ function Relay (relay, leds, power) {
 
 Relay.prototype.sync = function() {
   // Read current state
-  nexo.relay_check( this.relay, function (is_on) { 
+  nexo.relay_check( this.relay, function (is_on) {
     this.is_on = is_on;
     this.led( is_on?'on':'off' );
   }.bind(this) );
@@ -30,14 +30,14 @@ Relay.prototype.led = function(state) {
 };
 
 Relay.prototype.on = function() {
-  // Swithc relay on
+  // Switch relay on
   this.is_on = true;
   nexo.relay_on( this.relay );
   this.led( 'on' );
 };
 
 Relay.prototype.off = function() {
-  // Swithc relay on
+  // Switch relay off
   this.is_on = false;
   nexo.relay_off( this.relay );
   this.led( 'off' );
