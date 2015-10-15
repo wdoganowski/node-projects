@@ -14,12 +14,16 @@ var util = require( 'util' ),
 
 rpi.init();
 
+var sensors = {
+  lazienka_dht21:       new ESP_DHT21( '192.168.0.4' ),
+}
+
 var relays = {
   salon_gora:     new Relay( 'salon_gora', ['salo1'], 14 ),
   kuchnia_gora:   new Relay( 'kuchnia_gora', ['kuch1', 'kotl1'], 14 + 2*14/0.8 ),
   kuchnia_dol:    new Relay( 'kuchnia_dol', ['kuch2', 'kotl2'], 2*6/0.8 ),
   ogrod_zim_gora: new Relay( 'ogrod_zim_gora', ['ogro2', 'salo4'], 4*25 ),
-  lazienka_went:  new ESP_Relay( dth21['lazienka'].ip, ['lazwe'], 2*100 ),
+  lazienka_went:  new ESP_Relay( sensors['lazienka_dht21'].ip, ['lazwe'], 2*100 ),
 }
 
 var pioneer = new Pioneer( ['kuch6', 'kotl6', 'salo6', 'ogro6'], 100 )
@@ -31,10 +35,6 @@ var timers = {
 
 var states = {
   lux_low:        new State( 'ogr1lux' ),
-}
-
-var sensors = {
-  lazienka_dht21:       new ESP_DHT21( '192.168.0.4' ),
 }
 
 //var sensors = {
@@ -55,7 +55,8 @@ var rules = {
   init: function () {
     // Control of went in lazienka
     timers['lazienka_timer'].set( function () {
-      if( sensors['lazienka_dht21'].humidity > 60)
+      sensors['lazienka_dht21'].sync();
+      if( sensors['lazienka_dht21'].hum.value > 60)
         relays['lazienka_went'].on
       else
         relays['lazienka_went'].off;
@@ -189,12 +190,11 @@ var rules = {
     {
       id:     60782,
       key:    '4P0NJFR9H09ZYAEJ',
-      length: 5,
-      field1: states['lux_low'],
-      field2: sensors['lazienka_dht21'].temperature,
-      field3: sensors['lazienka_dht21'].humidity,
+      length: 4,
+      field1: sensors['lazienka_dht21'].temp,
+      field2: sensors['lazienka_dht21'].hum,
       field3: sensors['lazienka_dht21'].feels,
-      field3: relays['lazienka_went'],
+      field4: relays['lazienka_went'],
     },
   ],
 
