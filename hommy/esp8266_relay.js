@@ -3,6 +3,7 @@
 var debug = require( 'debug' )( 'esp_relay' ),
     http = require( 'http' ),
     util = require( 'util' ),
+    async = require('async'),
     nexo = require( './nexo_helper' );
 
 function ESP_Relay ( ip, leds, power ) {
@@ -22,37 +23,46 @@ ESP_Relay.prototype.init = function() {
   async.series([
 
     function(callback) {
-      debug( 'checking existance of ESP_DHT21 at %s', this.ip );
+      debug( 'checking existance of ESP_Relay at %s', this.ip );
       this.http_get( 'id', '', function( response ) {
-        this.connected = response.connected;
-        this.id = response.id;
-        this.name = response.name;
+        if( response ) {
+          this.connected = response.connected;
+          this.id = response.id;
+          this.name = response.name;
+        } else {
+          debug( '%s timeout', this.ip );
+        }
         callback();
-      }.bind(this);
-    }.bind( this ),
-
-    function(callback) {
-      debug( 'setting up %s', this.id );
-      this.http_get( 'set_ticker', 300, callback );
+      }.bind(this))
     }.bind( this ),
 
     function(callback) {
       this.sync( callback );
     }.bind( this ),
 
+    function(callback) {
+      if( !this.connected ) setTimeout( this.init(), 5*1000 );
+      callback();
+    }.bind( this ),
+
   ]);
 
 };
 
-ESP_Relay.prototype.sync = function() {
+ESP_Relay.prototype.sync = function( callback ) {
   // Read current state
-  this.http_get( 'relay', '', function( response ) {
-    if( response ) {
-      this.is_on = response.relay;
-      debug( 'relay is: ', this.is_on)
-    }
-    this.led( this.is_on?'on':'off' );
-  }.bind(this);
+  if( this.connected ) { 
+    this.http_get( 'relay', '', function( response ) {
+      if( response ) {
+        this.is_on = response.relay;
+        debug( 'relay is: ', this.is_on)
+      }
+      this.led( this.is_on?'on':'off' );
+      callback();
+    }.bind( this ));
+  } else {
+    callback();
+  }
 };
 
 ESP_Relay.prototype.led = function(state) {
@@ -71,16 +81,18 @@ ESP_Relay.prototype.set_state = function(state) {
       debug( 'relay is: ', this.is_on)
     }
     this.led( this.is_on?'on':'off' );
-  }.bind(this);
+  }.bind(this));
 };
 
 ESP_Relay.prototype.on = function() {
   // Switch relay on
+  debug( 'on' );
   this.set_state( true );
 };
 
 ESP_Relay.prototype.off = function() {
   // Switch relay off
+  debug( 'off' );
   this.set_state( false );
 };
 
@@ -113,10 +125,10 @@ ESP_Relay.prototype.http_get = function( uri, param, callback ) {
 
 ESP_Relay.prototype.get_url = function( uri, param ) {
   if ( param && param != '' ) {
-    debug( '[ESP_DHT21] url: ' + 'http://' + this.ip + '/' + uri + '?params=' + param );
+    debug( 'url: ' + 'http://' + this.ip + '/' + uri + '?params=' + param );
     return 'http://' + this.ip + '/' + uri + '?params=' + param;
   } else {
-    debug( '[ESP_DHT21] url: ' + 'http://' + this.ip + '/' + uri  );
+    debug( 'url: ' + 'http://' + this.ip + '/' + uri  );
     return 'http://' + this.ip + '/' + uri;
   }
 }

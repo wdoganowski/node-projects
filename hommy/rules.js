@@ -30,7 +30,6 @@ var pioneer = new Pioneer( ['kuch6', 'kotl6', 'salo6', 'ogro6'], 100 )
 
 var timers = {
   kuchnia_timer:  new Timer(),
-  lazienka_timer: new Timer(),
 }
 
 var states = {
@@ -53,15 +52,18 @@ var rules = {
   // Utils
   //
   init: function () {
-    // Control of went in lazienka
-    timers['lazienka_timer'].set( function () {
-      sensors['lazienka_dht21'].sync();
-      if( sensors['lazienka_dht21'].hum.value > 60)
-        relays['lazienka_went'].on
-      else
-        relays['lazienka_went'].off;
-    }, 5*60*1000 ); // every 5 minutes
-
+    // Control of wentylator in lazienka
+    setInterval( function () {
+      sensors['lazienka_dht21'].sync( function() {
+        if( sensors['lazienka_dht21'].hum.value > 55) {
+	  rules_debug( 'on' );
+          relays['lazienka_went'].on();
+        } else {
+	  rules_debug( 'off' );
+          relays['lazienka_went'].off();
+        }
+      })
+    }, 300*1000 ); // every 30 seconds
   },
 
   //

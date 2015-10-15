@@ -33,30 +33,43 @@ ESP_DHT21.prototype.init = function() {
     function(callback) {
       debug( 'checking existance of ESP_DHT21 at %s', this.ip );
       this.http_get( 'id', '', function( response ) {
-        this.connected = response.connected;
-        this.id = response.id;
-        this.name = response.name;
+        if( response ) {
+          this.connected = response.connected;
+          this.id = response.id;
+          this.name = response.name;
+        } else {
+          debug( '%s timeout', this.ip );
+        }
         callback();
-      }.bind(this);
+      }.bind(this))
     }.bind( this ),
 
     function(callback) {
       debug( 'setting up %s', this.id );
-      this.http_get( 'set_ticker', 300, callback );
+      this.http_get( 'set_ticker', 300, function() { callback() } );
     }.bind( this ),
 
     function(callback) {
       this.sync( callback );
     }.bind( this ),
 
+    function(callback) {
+      if( !this.connected ) setTimeout( function(){
+        this.init()
+      }.bind( this ), 5*1000 );
+      callback();
+    }.bind( this ),
+
   ]);
+
 };
 
-ESP_DHT21.prototype.sync = function( callback ) {
+ESP_DHT21.prototype.sync = function( callback2 ) {
   debug( 'sync %s', this.id );
   // read parameters
 
-  async.series([
+  if( this.connected ) {
+    async.series ([
 
     // temperature
     function(callback) {
@@ -66,7 +79,7 @@ ESP_DHT21.prototype.sync = function( callback ) {
           debug( 'temperature: ', this.temp.value );
         }
         callback();
-      }.bind(this);
+      }.bind(this))
     }.bind( this ),
 
     // humidity
@@ -77,7 +90,7 @@ ESP_DHT21.prototype.sync = function( callback ) {
           debug( 'humidity: ', this.hum.value );
         }
         callback();
-      }.bind(this);
+      }.bind(this))
     }.bind( this ),
 
     // feels like
@@ -88,10 +101,17 @@ ESP_DHT21.prototype.sync = function( callback ) {
           debug( 'feels like: ', this.feels.value );
         }
         callback();
-      }.bind(this);
+      }.bind(this))
     }.bind( this ),
 
-  ]);
+    function(callback) {
+      callback2();
+    },
+
+  ])}  else {
+    debug( 'not connected' );
+    callback2();
+  }  
 }
 
 ESP_DHT21.prototype.http_get = function( uri, param, callback ) {
