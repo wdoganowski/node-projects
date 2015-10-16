@@ -87,13 +87,13 @@ ESP_Relay.prototype.set_state = function(state) {
 ESP_Relay.prototype.on = function() {
   // Switch relay on
   debug( 'on' );
-  this.set_state( true );
+  this.set_state( 1 );
 };
 
 ESP_Relay.prototype.off = function() {
   // Switch relay off
   debug( 'off' );
-  this.set_state( false );
+  this.set_state( 0 );
 };
 
 ESP_Relay.prototype.toggle = function() {

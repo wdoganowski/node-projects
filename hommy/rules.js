@@ -63,7 +63,7 @@ var rules = {
           relays['lazienka_went'].off();
         }
       })
-    }, 300*1000 ); // every 30 seconds
+    }, 30*1000 ); // every 30 seconds
   },
 
   //
