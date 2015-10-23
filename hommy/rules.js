@@ -1,6 +1,8 @@
 'use strict';
 
-var util = require( 'util' ),
+var settings_file = './hommy_cred.json',
+    settings = require( settings_file ),
+    util = require( 'util' ),
     nexo = require( './nexo_helper' ),
     rules_debug = require( 'debug' )( 'rules' ),
     Timer = require( './timer' ),
@@ -15,7 +17,7 @@ var util = require( 'util' ),
 rpi.init();
 
 var sensors = {
-  lazienka_dht21:       new ESP_DHT21( '192.168.0.4' ),
+  lazienka_dht21:       new ESP_DHT21( settings.bath.host ),
 }
 
 var relays = {

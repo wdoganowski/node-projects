@@ -1,4 +1,4 @@
-*_cred.json
+nexo_proxy/*_cred.json
 *.save
 node_modules/debug/
 node_modules/journey/

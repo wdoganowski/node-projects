@@ -1,0 +1,24 @@
+{
+  "version": "1.0",
+  "hommy": {
+    "port": 8082,
+    "rules": "./rules.js",
+    "stderr": "/var/log/hommy.err",
+    "stdout": "/var/log/hommy.out"
+  },
+  "proxy": {
+    "host": "127.0.0.1",
+    "port": 8081
+  },
+  "remmoty": {
+    "host": "192.168.0.154",
+    "port": 80
+  },
+  "nexo": {
+    "host": "192.168.0.194"
+  }
+  "bath": {
+    "host": "192.168.0.155"
+  }
+}
+
