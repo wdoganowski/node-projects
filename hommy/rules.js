@@ -22,6 +22,7 @@ var sensors = {
 
 var relays = {
   salon_gora:     new Relay( 'salon_gora', ['salo1'], 14 ),
+  hol_gora:       new Relay( 'hol_gora', ['salo3', 'kuch3', 'kotl3', 'ogro3'], 3*5.5 ),
   kuchnia_gora:   new Relay( 'kuchnia_gora', ['kuch1', 'kotl1'], 14 + 2*14/0.8 ),
   kuchnia_dol:    new Relay( 'kuchnia_dol', ['kuch2', 'kotl2'], 2*6/0.8 ),
   ogrod_zim_gora: new Relay( 'ogrod_zim_gora', ['ogro2', 'salo4'], 4*25 ),
@@ -58,10 +59,10 @@ var rules = {
     setInterval( function () {
       sensors['lazienka_dht21'].sync( function() {
         if( sensors['lazienka_dht21'].hum.value > 55) {
-	  rules_debug( 'on' );
+          rules_debug( 'on' );
           relays['lazienka_went'].on();
         } else {
-	  rules_debug( 'off' );
+          rules_debug( 'off' );
           relays['lazienka_went'].off();
         }
       })
@@ -91,6 +92,9 @@ var rules = {
     timers['kuchnia_timer'].reset();
     relays['kuchnia_dol'].toggle();
   },
+  wpp_kuch_3_click: function () {
+    relays['hol_gora'].toggle();
+  },
   wpp_kuch_6_click: function () {
     pioneer.toggle();
   },
@@ -116,6 +120,7 @@ var rules = {
   wpp_kotl_down: function () {this.wpp_kuch_down()},
   wpp_kotl_1_click: function () {this.wpp_kuch_1_click()},
   wpp_kotl_2_click: function () {this.wpp_kuch_2_click()},
+  wpp_kotl_3_click: function () {this.wpp_kuch_3_click()},
   wpp_kotl_6_click: function () {this.wpp_kuch_6_click()},
 
   //
@@ -132,6 +137,7 @@ var rules = {
   wpp_salon_1_click: function () {
     relays['salon_gora'].toggle();
   },
+  wpp_salon_3_click: function () {this.wpp_kuch_3_click()},
   wpp_salon_4_click: function () {
     relays['ogrod_zim_gora'].toggle();
   },
@@ -146,6 +152,7 @@ var rules = {
   wpp_ogrod_2_click: function () {
     relays['ogrod_zim_gora'].toggle();
   },
+  wpp_ogrod_3_click: function () {this.wpp_kuch_3_click()},
   wpp_ogrod_6_click: function () {this.wpp_kuch_6_click()},
 
   //
@@ -185,11 +192,12 @@ var rules = {
     {
       id:     17779,
       key:    'HCVJCBJ7J0OP4PNP',
-      length: 4,
+      length: 5,
       field1: relays['salon_gora'],
       field2: relays['kuchnia_gora'],
       field3: relays['kuchnia_dol'],
       field4: relays['ogrod_zim_gora'],
+      field5: relays['hol_gora'],
     },
     {
       id:     60782,
